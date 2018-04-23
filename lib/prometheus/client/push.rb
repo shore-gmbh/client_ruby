@@ -21,19 +21,16 @@ module Prometheus
 
       attr_reader :job, :instance, :gateway, :path
 
-      def initialize(job, instance = nil, gateway = nil, http_timeout = 60)
+      def initialize(job, instance = nil, gateway = nil, http_timeout = nil)
         @mutex = Mutex.new
         @job = job
         @instance = instance
         @gateway = gateway || DEFAULT_GATEWAY
         @uri = parse(@gateway)
         @path = build_path(job, instance)
-        @http = Net::HTTP.new(
-          @uri.host,
-          @uri.port,
-          open_timeout: http_timeout,
-          read_timeout: http_timeout
-        )
+        @http = Net::HTTP.new(@uri.host, @uri.port)
+        @http.open_timeout = http_timeout if http_timeout
+        @http.read_timeout = http_timeout if http_timeout
         @http.use_ssl = @uri.scheme == 'https'
       end
 
